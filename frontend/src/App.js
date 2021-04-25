@@ -8,7 +8,7 @@ function App() {
       <Header/>
       <main className ='py-3'>
         <Container>
-          <h1>Helloooooo</h1>
+          <h1>This is a movie station</h1>
         </Container>
         
       </main>
