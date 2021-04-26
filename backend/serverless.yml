@@ -7,5 +7,12 @@ functions:
     handler: handler.hello
     events:
       - http:
-          path: /
+          path: /hello
           method: get
+  ratings:
+    handler: handler.ratings
+    events:
+      - http:
+          path: /ratings
+          method: get
+          cors: true

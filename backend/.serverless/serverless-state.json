@@ -90,6 +90,12 @@
               "LogGroupName": "/aws/lambda/lambda-test-dev-hello"
             }
           },
+          "RatingsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/lambda-test-dev-ratings"
+            }
+          },
           "IamRoleLambdaExecution": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -174,7 +180,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/lambda-test/dev/1619303029325-2021-04-24T22:23:49.325Z/lambda-test.zip"
+                "S3Key": "serverless/lambda-test/dev/1619405945178-2021-04-26T02:59:05.178Z/lambda-test.zip"
               },
               "Handler": "handler.hello",
               "Runtime": "nodejs12.x",
@@ -192,14 +198,49 @@
               "HelloLogGroup"
             ]
           },
-          "HelloLambdaVersionLRLyTe55FC4xzVNOkLaze70b40Wcd1YxEACzbWIN40": {
+          "RatingsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/lambda-test/dev/1619405945178-2021-04-26T02:59:05.178Z/lambda-test.zip"
+              },
+              "Handler": "handler.ratings",
+              "Runtime": "nodejs12.x",
+              "FunctionName": "lambda-test-dev-ratings",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "RatingsLogGroup"
+            ]
+          },
+          "HelloLambdaVersionVk7QHMxFnwCA5E1JiRvdOGZJTiJI9eLoTkLonmixQ": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HelloLambdaFunction"
               },
-              "CodeSha256": "YfbydaiMkMUp1xU1yZDRASYwN6xxbkX2p47yhrJm/+M="
+              "CodeSha256": "QAN88/yfR2OEMWS4eNc6mPDp/AhamVCaHdaXwWorA3g="
+            }
+          },
+          "RatingsLambdaVersion4xBsyHtoA7YAunu6GNAznlObHHryNY74H4RRKRYBJo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RatingsLambdaFunction"
+              },
+              "CodeSha256": "QAN88/yfR2OEMWS4eNc6mPDp/AhamVCaHdaXwWorA3g="
             }
           },
           "ApiGatewayRestApi": {
@@ -214,16 +255,88 @@
               "Policy": ""
             }
           },
-          "ApiGatewayMethodGet": {
+          "ApiGatewayResourceHello": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "hello",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceRatings": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "ratings",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodRatingsOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceRatings"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodHelloGet": {
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
               "HttpMethod": "GET",
               "RequestParameters": {},
               "ResourceId": {
-                "Fn::GetAtt": [
-                  "ApiGatewayRestApi",
-                  "RootResourceId"
-                ]
+                "Ref": "ApiGatewayResourceHello"
               },
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
@@ -260,7 +373,50 @@
               "MethodResponses": []
             }
           },
-          "ApiGatewayDeployment1619303027924": {
+          "ApiGatewayMethodRatingsGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceRatings"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "RatingsLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            }
+          },
+          "ApiGatewayDeployment1619405943482": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -269,7 +425,9 @@
               "StageName": "dev"
             },
             "DependsOn": [
-              "ApiGatewayMethodGet"
+              "ApiGatewayMethodRatingsOptions",
+              "ApiGatewayMethodHelloGet",
+              "ApiGatewayMethodRatingsGet"
             ]
           },
           "HelloLambdaPermissionApiGateway": {
@@ -278,6 +436,43 @@
               "FunctionName": {
                 "Fn::GetAtt": [
                   "HelloLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "RatingsLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "RatingsLambdaFunction",
                   "Arn"
                 ]
               },
@@ -322,10 +517,19 @@
           "HelloLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HelloLambdaVersionLRLyTe55FC4xzVNOkLaze70b40Wcd1YxEACzbWIN40"
+              "Ref": "HelloLambdaVersionVk7QHMxFnwCA5E1JiRvdOGZJTiJI9eLoTkLonmixQ"
             },
             "Export": {
               "Name": "sls-lambda-test-dev-HelloLambdaFunctionQualifiedArn"
+            }
+          },
+          "RatingsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RatingsLambdaVersion4xBsyHtoA7YAunu6GNAznlObHHryNY74H4RRKRYBJo"
+            },
+            "Export": {
+              "Name": "sls-lambda-test-dev-RatingsLambdaFunctionQualifiedArn"
             }
           },
           "ServiceEndpoint": {
@@ -447,7 +651,7 @@
         "events": [
           {
             "http": {
-              "path": "",
+              "path": "hello",
               "method": "get",
               "integration": "AWS_PROXY"
             }
@@ -459,7 +663,45 @@
         "timeout": 6,
         "runtime": "nodejs12.x",
         "vpc": {},
-        "versionLogicalId": "HelloLambdaVersionLRLyTe55FC4xzVNOkLaze70b40Wcd1YxEACzbWIN40"
+        "versionLogicalId": "HelloLambdaVersionVk7QHMxFnwCA5E1JiRvdOGZJTiJI9eLoTkLonmixQ"
+      },
+      "ratings": {
+        "handler": "handler.ratings",
+        "events": [
+          {
+            "http": {
+              "path": "ratings",
+              "method": "get",
+              "cors": {
+                "origins": [
+                  "*"
+                ],
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "GET"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "lambda-test-dev-ratings",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs12.x",
+        "vpc": {},
+        "versionLogicalId": "RatingsLambdaVersion4xBsyHtoA7YAunu6GNAznlObHHryNY74H4RRKRYBJo"
       }
     },
     "configValidationMode": "warn",
@@ -477,10 +719,10 @@
       }
     },
     "isDashboardMonitoringPreconfigured": false,
-    "artifact": "/Users/sylvia/Desktop/Movie shop/backend/.serverless/lambda-test.zip"
+    "artifact": "/Users/sylvia/Desktop/Movie shop/SummerFriday/backend/.serverless/lambda-test.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/lambda-test/dev/1619303029325-2021-04-24T22:23:49.325Z",
+    "artifactDirectoryName": "serverless/lambda-test/dev/1619405945178-2021-04-26T02:59:05.178Z",
     "artifact": "lambda-test.zip"
   }
 }
