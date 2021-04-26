@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import firebase from "firebase";
 import StyleFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-
+import Ratings from "./Ratings"
 var uiConfig = {
   signInFlow: "popup",
   signInOptions: [
@@ -56,6 +56,8 @@ const Signup = () => {
           Welcome, {user.displayName} <br />
           <small>{user.email}</small> <br />
           <button onClick={signOut}>Sign out</button>
+          
+          <Ratings />
         </p>
       </>
     );
