@@ -4,6 +4,7 @@ import './index.css';
 import './bootstrap.min.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import './setupFirebase';
 
 ReactDOM.render(
   <React.StrictMode>
