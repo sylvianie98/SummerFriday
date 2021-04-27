@@ -23,8 +23,11 @@ class Ratings extends React.Component {
     render() {
         return (
               <div>
-            <div className="title">Ratings</div>
-            <h1>{JSON.stringify(this.state.ratings)}</h1>
+                <div className="title">Ratings</div>
+		<div className="title">Title: {this.state.ratings.film}</div>
+		<div className="subtitle">Rating: {this.state.ratings.rating}</div>
+                <p>Year: {this.state.ratings.time}</p>
+                <p>Number of comments: {this.state.ratings.comments}</p>
               </div>
           )
       }
